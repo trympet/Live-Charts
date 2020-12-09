@@ -76,22 +76,23 @@ namespace LiveCharts.Wpf.Components
 
         private void UpdaterTick(bool restartView, bool force)
         {
-            var wpfChart = (Chart) Chart.View;
+            if (Chart.View is Chart wpfChart)
+            {
+                if (!force && !wpfChart.IsVisible && !wpfChart.IsMocked) return;
+
+                Chart.ControlSize = wpfChart.IsMocked
+                    ? wpfChart.Model.ControlSize
+                    : new CoreSize(wpfChart.ActualWidth, wpfChart.ActualHeight);
+
+                Timer.Stop();
+                Update(restartView, force);
+                IsUpdating = false;
+
+                RequiresRestart = false;
             
-            if (!force && !wpfChart.IsVisible && !wpfChart.IsMocked) return;
-
-            Chart.ControlSize = wpfChart.IsMocked
-                ? wpfChart.Model.ControlSize
-                : new CoreSize(wpfChart.ActualWidth, wpfChart.ActualHeight);
-
-            Timer.Stop();
-            Update(restartView, force);
-            IsUpdating = false;
-
-            RequiresRestart = false;
-            
-            wpfChart.ChartUpdated();
-            wpfChart.PrepareScrolBar();
+                wpfChart.ChartUpdated();
+                wpfChart.PrepareScrolBar();
+            }
         }
     }
 }
