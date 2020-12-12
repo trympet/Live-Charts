@@ -76,7 +76,7 @@ namespace LiveCharts.Wpf.Components
 
         private void UpdaterTick(bool restartView, bool force)
         {
-            if (Chart.View is Chart wpfChart)
+            if (Chart?.View is Chart wpfChart)
             {
                 if (!force && !wpfChart.IsVisible && !wpfChart.IsMocked) return;
 
@@ -92,6 +92,10 @@ namespace LiveCharts.Wpf.Components
             
                 wpfChart.ChartUpdated();
                 wpfChart.PrepareScrolBar();
+            }
+            else
+            {
+                Debug.Fail("Chart view is null");
             }
         }
     }
