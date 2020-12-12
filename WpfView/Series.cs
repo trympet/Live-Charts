@@ -465,6 +465,7 @@ namespace LiveCharts.Wpf
         /// </summary>
         public virtual void Erase(bool removeFromView = true)
         {
+            if (Values == null) return;
             Values.GetPoints(this).ForEach(p =>
             {
                 if (p.View != null)

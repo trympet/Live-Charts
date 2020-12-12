@@ -119,6 +119,11 @@ namespace LiveCharts.Helpers
             ChartPoint t = null;
             var delta = double.PositiveInfinity;
 
+            if (series.Values is null)
+            {
+                return null;
+            }
+
             foreach (var point in series.Values.GetPoints(series))
             {
                 var i = orientation == AxisOrientation.X ? point.X : point.Y;
