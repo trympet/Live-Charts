@@ -35,5 +35,10 @@ namespace LiveCharts.Definitions.Series
         /// The maximum width of the column.
         /// </value>
         double MaxColumnWidth { get; set; }
+
+        /// <summary>
+        /// Gets or sets the interval (in points) corresponding to one unit on the x-axis.
+        /// </summary>
+        int Interval { get; set; }
     }
 }

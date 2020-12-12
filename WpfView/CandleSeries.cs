@@ -70,6 +70,18 @@ namespace LiveCharts.Wpf
         #region Properties
 
         /// <summary>
+        /// The interval property
+        /// </summary>
+        public static readonly DependencyProperty IntervalProperty = DependencyProperty.Register(
+            nameof(IntervalProperty), typeof(int), typeof(OhlcSeries), new PropertyMetadata(default(int)));
+        /// <inheritdoc/>
+        public int Interval
+        {
+            get { return (int)GetValue(IntervalProperty); }
+            set { SetValue(IntervalProperty, value); }
+        }
+
+        /// <summary>
         /// The maximum column width property
         /// </summary>
         public static readonly DependencyProperty MaxColumnWidthProperty = DependencyProperty.Register(
