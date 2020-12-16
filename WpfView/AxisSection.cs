@@ -254,7 +254,7 @@ namespace LiveCharts.Wpf
         /// The data label property
         /// </summary>
         public static readonly DependencyProperty DataLabelProperty = DependencyProperty.Register(
-            "DataLabel", typeof(bool), typeof(AxisSection), new PropertyMetadata(default(bool)));
+            "DataLabel", typeof(bool), typeof(AxisSection), new PropertyMetadata(default(bool), UpdateDataLabel));
         /// <summary>
         /// Gets or sets a value indicating whether the section should display a label that displays its current value.
         /// </summary>
@@ -499,6 +499,35 @@ namespace LiveCharts.Wpf
                     new DoubleAnimation(labelTab, chart.View.AnimationsSpeed));
             }
 
+        }
+
+        private void UpdateLabel(AxisOrientation source, int axis)
+        {
+            var ax = source == AxisOrientation.X ? Model.Chart.AxisX[axis] : Model.Chart.AxisY[axis];
+
+            if (DataLabel)
+            {
+                _label.Visibility = Visibility.Visible;
+                if (DataLabelForeground != null) _label.Foreground = DataLabelForeground;
+                _label.UpdateLayout();
+                _label.Background = Stroke ?? Fill;
+                PlaceLabel(ax.GetFormatter()(Value), ax, source);
+            }
+            else
+            {
+                _label.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private static void UpdateDataLabel(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
+        {
+            var section = (AxisSection)dependencyObject;
+
+            if (section.Model != null && section.Model.Chart != null)
+            {
+                if (!section.Model.Chart.AreComponentsLoaded) return;
+                section.UpdateLabel(section.Model.Source, section.Model.AxisIndex);
+            }
         }
     }
 }
