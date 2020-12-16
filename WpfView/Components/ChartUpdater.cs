@@ -76,26 +76,34 @@ namespace LiveCharts.Wpf.Components
 
         private void UpdaterTick(bool restartView, bool force)
         {
-            if (Chart?.View is Chart wpfChart)
+            try
             {
-                if (!force && !wpfChart.IsVisible && !wpfChart.IsMocked) return;
+                if (Chart?.View is Chart wpfChart)
+                {
+                    if (!force && !wpfChart.IsVisible && !wpfChart.IsMocked) return;
 
-                Chart.ControlSize = wpfChart.IsMocked
-                    ? wpfChart.Model.ControlSize
-                    : new CoreSize(wpfChart.ActualWidth, wpfChart.ActualHeight);
+                    Chart.ControlSize = wpfChart.IsMocked
+                        ? wpfChart.Model.ControlSize
+                        : new CoreSize(wpfChart.ActualWidth, wpfChart.ActualHeight);
 
-                Timer.Stop();
-                Update(restartView, force);
-                IsUpdating = false;
+                    Timer?.Stop();
+                    Update(restartView, force);
+                    IsUpdating = false;
 
-                RequiresRestart = false;
+                    RequiresRestart = false;
             
-                wpfChart.ChartUpdated();
-                wpfChart.PrepareScrolBar();
+                    wpfChart.ChartUpdated();
+                    wpfChart.PrepareScrolBar();
+                }
+                else
+                {
+                    Debug.Fail("Chart view is null");
+                }
+
             }
-            else
+            catch (NullReferenceException e)
             {
-                Debug.Fail("Chart view is null");
+                Debug.Fail(e.ToString(), "Null referece in updater");
             }
         }
     }
