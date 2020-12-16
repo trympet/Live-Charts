@@ -24,6 +24,8 @@ using LiveCharts.Defaults;
 using LiveCharts.Definitions.Points;
 using LiveCharts.Definitions.Series;
 using LiveCharts.Dtos;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LiveCharts.SeriesAlgorithms
 {
@@ -54,6 +56,7 @@ namespace LiveCharts.SeriesAlgorithms
             const double padding = 1.2;
 
             var totalSpace = ChartFunctions.GetUnitWidth(AxisOrientation.X, Chart, View.ScalesXAt) - padding;
+            totalSpace *= castedSeries.Interval;
 
             double exceed = 0;
             double candleWidth;
@@ -70,32 +73,80 @@ namespace LiveCharts.SeriesAlgorithms
 
             ChartPoint previousDrawn = null;
 
-            foreach (var chartPoint in View.ActualValues.GetPoints(View))
+            var interval = castedSeries.Interval;
+            var points = View.ActualValues.GetPoints(View);
+
+            for (int i = 0; i < points.Count(); i += interval)
             {
-                var x = ChartFunctions.ToDrawMargin(chartPoint.X, AxisOrientation.X, Chart, View.ScalesXAt);
+                var firstPoint = points.ElementAt(i);
+                var view = View.GetPointView(firstPoint,
+                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
+                var x = ChartFunctions.ToDrawMargin(firstPoint.X, AxisOrientation.X, Chart, View.ScalesXAt);
 
-                chartPoint.View = View.GetPointView(chartPoint,
-                    View.DataLabels ? View.GetLabelPointFormatter()(chartPoint) : null);
+                double open, high, low, close;
+                GetOHLC(points, interval, i, out open, out high, out low, out close);
 
-                chartPoint.SeriesView = View;
+                firstPoint.View = View.GetPointView(firstPoint,
+                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
 
-                var candeView = (IOhlcPointView) chartPoint.View;
+                firstPoint.SeriesView = View;
 
-                candeView.Open = ChartFunctions.ToDrawMargin(chartPoint.Open, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.Close = ChartFunctions.ToDrawMargin(chartPoint.Close, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.High = ChartFunctions.ToDrawMargin(chartPoint.High, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.Low = ChartFunctions.ToDrawMargin(chartPoint.Low, AxisOrientation.Y, Chart, View.ScalesYAt);
+                var candeView = (IOhlcPointView) firstPoint.View;
+
+                candeView.Open = ChartFunctions.ToDrawMargin(open, AxisOrientation.Y, Chart, View.ScalesYAt);
+                candeView.Close = ChartFunctions.ToDrawMargin(close, AxisOrientation.Y, Chart, View.ScalesYAt);
+                candeView.High = ChartFunctions.ToDrawMargin(high, AxisOrientation.Y, Chart, View.ScalesYAt);
+                candeView.Low = ChartFunctions.ToDrawMargin(low, AxisOrientation.Y, Chart, View.ScalesYAt);
 
                 candeView.Width = candleWidth - padding > 0 ? candleWidth - padding : 0;
                 candeView.Left = x + exceed/2 + padding;
                 candeView.StartReference = (candeView.High + candeView.Low)/2;
 
-                chartPoint.ChartLocation = new CorePoint(x + exceed/2, (candeView.High + candeView.Low)/2);
+                firstPoint.ChartLocation = new CorePoint(x + exceed/2, (candeView.High + candeView.Low)/2);
 
-                chartPoint.View.DrawOrMove(previousDrawn, chartPoint, 0, Chart);
+                firstPoint.View.DrawOrMove(previousDrawn, firstPoint, 0, Chart);
 
-                previousDrawn = chartPoint;
+                previousDrawn = firstPoint;
             }
+        }
+
+        private static void GetOHLC(IEnumerable<ChartPoint> points, int interval, int startIndex, out double open, out double high, out double low, out double close)
+        {
+            var firstElement = points.ElementAt(startIndex);
+            open = firstElement.Open;
+            high = firstElement.High;
+            low = firstElement.Low;
+            if (interval == 1)
+            {
+                close = firstElement.Close;
+                return;
+            }
+
+            var length = points.Count();
+
+            // Interval + startindex could be greater than length,
+            // so we declare j outside of the loop scope to get our
+            // close value.
+            int j = 0;
+            for (; j < interval; j++)
+            {
+                if (startIndex + j == length)
+                {
+                    break;
+                }
+                if (points.ElementAtOrDefault(startIndex + j) is ChartPoint point)
+                {
+                    if (point.High > high)
+                    {
+                        high = point.High;
+                    }
+                    if (point.Low < low)
+                    {
+                        low = point.Low;
+                    }
+                }
+            }
+            close = points.ElementAt(startIndex + j - 1).Close;
         }
 
         double ICartesianSeries.GetMinX(AxisCore axis)
