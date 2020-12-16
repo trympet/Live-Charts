@@ -77,20 +77,20 @@ namespace LiveCharts.SeriesAlgorithms
 
             for (int i = 0; i < points.Count(); i += interval)
             {
-                var firstPointInInterval = points.ElementAt(i);
-                var view = View.GetPointView(firstPointInInterval,
-                    View.DataLabels ? View.GetLabelPointFormatter()(firstPointInInterval) : null);
-                var x = ChartFunctions.ToDrawMargin(firstPointInInterval.X, AxisOrientation.X, Chart, View.ScalesXAt);
+                var firstPoint = points.ElementAt(i);
+                var view = View.GetPointView(firstPoint,
+                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
+                var x = ChartFunctions.ToDrawMargin(firstPoint.X, AxisOrientation.X, Chart, View.ScalesXAt);
 
                 double open, high, low, close;
                 GetOHLC(points, interval, i, out open, out high, out low, out close);
 
-                firstPointInInterval.View = View.GetPointView(firstPointInInterval,
-                    View.DataLabels ? View.GetLabelPointFormatter()(firstPointInInterval) : null);
+                firstPoint.View = View.GetPointView(firstPoint,
+                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
 
-                firstPointInInterval.SeriesView = View;
+                firstPoint.SeriesView = View;
 
-                var candeView = (IOhlcPointView)firstPointInInterval.View;
+                var candeView = (IOhlcPointView)firstPoint.View;
 
                 candeView.Open = ChartFunctions.ToDrawMargin(open, AxisOrientation.Y, Chart, View.ScalesYAt);
                 candeView.Close = ChartFunctions.ToDrawMargin(close, AxisOrientation.Y, Chart, View.ScalesYAt);
@@ -101,9 +101,9 @@ namespace LiveCharts.SeriesAlgorithms
                 candeView.Left = x + exceed / 2 + padding;
                 candeView.StartReference = (candeView.High + candeView.Low) / 2;
 
-                firstPointInInterval.ChartLocation = new CorePoint(x + exceed / 2, (candeView.High + candeView.Low) / 2);
+                firstPoint.ChartLocation = new CorePoint(x + exceed / 2, (candeView.High + candeView.Low) / 2);
 
-                firstPointInInterval.View.DrawOrMove(null, firstPointInInterval, 0, Chart);
+                firstPoint.View.DrawOrMove(null, firstPoint, 0, Chart);
             }
         }
 
