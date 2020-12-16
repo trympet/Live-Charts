@@ -56,8 +56,7 @@ namespace LiveCharts.SeriesAlgorithms
 
             const double padding = 1.2;
 
-            var totalSpace = ChartFunctions.GetUnitWidth(AxisOrientation.X, Chart, View.ScalesXAt) - padding;
-            totalSpace *= castedSeries.Interval;
+            var totalSpace = ChartFunctions.GetUnitWidth(AxisOrientation.X, Chart, View.ScalesXAt) * castedSeries.Interval - padding;
 
             double exceed = 0;
             double candleWidth = 0;
