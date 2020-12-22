@@ -512,6 +512,7 @@ namespace LiveCharts.Wpf
                 _label.UpdateLayout();
                 _label.Background = Stroke ?? Fill;
                 PlaceLabel(ax.GetFormatter()(Value), ax, source);
+                Canvas.SetZIndex(_label, 999);
             }
             else
             {
