@@ -360,7 +360,7 @@ namespace LiveCharts.Wpf
         /// The font size property
         /// </summary>
         public static readonly DependencyProperty FontSizeProperty =
-            DependencyProperty.Register("FontSize", typeof(double), typeof(Axis), new PropertyMetadata(11.0));
+            DependencyProperty.Register("FontSize", typeof(double), typeof(Axis), new PropertyMetadata(11.0, UpdateChart()));
         /// <summary>
         /// Gets or sets labels font size
         /// </summary>
