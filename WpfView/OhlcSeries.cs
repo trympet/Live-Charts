@@ -71,7 +71,7 @@ namespace LiveCharts.Wpf
         /// The interval property
         /// </summary>
         public static readonly DependencyProperty IntervalProperty = DependencyProperty.Register(
-            nameof(IntervalProperty), typeof(int), typeof(OhlcSeries), new PropertyMetadata(default(int)));
+            nameof(Interval), typeof(int), typeof(OhlcSeries), new PropertyMetadata(default(int), CallChartUpdater()));
         /// <inheritdoc/>
         public int Interval
         {
