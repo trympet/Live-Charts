@@ -44,7 +44,7 @@ namespace LiveCharts.Wpf
         /// </summary>
         public OhlcSeries()
         {
-            Model = new OhlcAlgorithm(this);
+            Model = new FinancialAlgorithm(this);
             InitializeDefuaults();
         }
 
@@ -54,7 +54,7 @@ namespace LiveCharts.Wpf
         /// <param name="configuration"></param>
         public OhlcSeries(object configuration)
         {
-            Model = new OhlcAlgorithm(this);
+            Model = new FinancialAlgorithm(this);
             Configuration = configuration;
             InitializeDefuaults();
         }

@@ -46,7 +46,7 @@ namespace LiveCharts.Wpf
         /// </summary>
         public CandleSeries()
         {
-            Model = new CandleAlgorithm(this);
+            Model = new FinancialAlgorithm(this);
             InitializeDefuaults();
         }
 
@@ -56,7 +56,7 @@ namespace LiveCharts.Wpf
         /// <param name="configuration"></param>
         public CandleSeries(object configuration)
         {
-            Model = new CandleAlgorithm(this);
+            Model = new FinancialAlgorithm(this);
             Configuration = configuration;
             InitializeDefuaults();
         }
