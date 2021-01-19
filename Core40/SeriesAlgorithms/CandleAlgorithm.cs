@@ -24,6 +24,7 @@ using LiveCharts.Defaults;
 using LiveCharts.Definitions.Points;
 using LiveCharts.Definitions.Series;
 using LiveCharts.Dtos;
+using LiveCharts.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,13 +35,13 @@ namespace LiveCharts.SeriesAlgorithms
     /// </summary>
     /// <seealso cref="LiveCharts.SeriesAlgorithm" />
     /// <seealso cref="LiveCharts.Definitions.Series.ICartesianSeries" />
-    public class CandleAlgorithm : SeriesAlgorithm, ICartesianSeries
+    public class FinancialAlgorithm : SeriesAlgorithm, ICartesianSeries
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CandleAlgorithm"/> class.
+        /// Initializes a new instance of the <see cref="FinancialAlgorithm"/> class.
         /// </summary>
         /// <param name="view">The view.</param>
-        public CandleAlgorithm(ISeriesView view) : base(view)
+        public FinancialAlgorithm(ISeriesView view) : base(view)
         {
             SeriesOrientation = SeriesOrientation.Horizontal;
             PreferredSelectionMode = TooltipSelectionMode.SharedXValues;
@@ -51,8 +52,8 @@ namespace LiveCharts.SeriesAlgorithms
         /// </summary>
         public override void Update()
         {
-            var castedSeries = (IFinancialSeriesView) View;
-            
+            var castedSeries = (IFinancialSeriesView)View;
+
             const double padding = 1.2;
 
             var totalSpace = ChartFunctions.GetUnitWidth(AxisOrientation.X, Chart, View.ScalesXAt) * castedSeries.Interval - padding;
@@ -73,40 +74,56 @@ namespace LiveCharts.SeriesAlgorithms
             ChartPoint previousDrawn = null;
 
             var interval = castedSeries.Interval;
-            var points = View.ActualValues.GetPoints(View);
-
-            for (int i = 0; i < points.Count(); i += interval)
+            if (interval < 0)
             {
-                var firstPoint = points.ElementAt(i);
-                var view = View.GetPointView(firstPoint,
-                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
-                var x = ChartFunctions.ToDrawMargin(firstPoint.X, AxisOrientation.X, Chart, View.ScalesXAt);
-
-                double open, high, low, close;
-                GetOHLC(points, interval, i, out open, out high, out low, out close);
-
-                firstPoint.View = View.GetPointView(firstPoint,
-                    View.DataLabels ? View.GetLabelPointFormatter()(firstPoint) : null);
-
-                firstPoint.SeriesView = View;
-
-                var candeView = (IOhlcPointView) firstPoint.View;
-
-                candeView.Open = ChartFunctions.ToDrawMargin(open, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.Close = ChartFunctions.ToDrawMargin(close, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.High = ChartFunctions.ToDrawMargin(high, AxisOrientation.Y, Chart, View.ScalesYAt);
-                candeView.Low = ChartFunctions.ToDrawMargin(low, AxisOrientation.Y, Chart, View.ScalesYAt);
-
-                candeView.Width = candleWidth - padding > 0 ? candleWidth - padding : 0;
-                candeView.Left = x + exceed/2 + padding;
-                candeView.StartReference = (candeView.High + candeView.Low)/2;
-
-                firstPoint.ChartLocation = new CorePoint(x + exceed/2, (candeView.High + candeView.Low)/2);
-
-                firstPoint.View.DrawOrMove(previousDrawn, firstPoint, 0, Chart);
-
-                previousDrawn = firstPoint;
+                throw new LiveChartsException("Interval can't be less than or equal to zero");
             }
+
+            var points = View.ActualValues.GetPoints(View);
+            for (int i = 0; i < points.Count(); i++)
+            {
+                var point = points.ElementAt(i);
+                var view = View.GetPointView(point,
+                    View.DataLabels ? View.GetLabelPointFormatter()(point) : null);
+                if (i % interval == 0)
+                {
+                    var x = ChartFunctions.ToDrawMargin(point.X, AxisOrientation.X, Chart, View.ScalesXAt);
+                    point.View = View.GetPointView(point,
+                        View.DataLabels ? View.GetLabelPointFormatter()(point) : null);
+                    point.SeriesView = View;
+
+                    var candeView = (IOhlcPointView)point.View;
+
+                    SetPointViewOHLC(points, interval, i, candeView);
+                    SetPointViewPosition(padding, exceed, candleWidth, x, candeView);
+
+                    point.ChartLocation = new CorePoint(x + exceed / 2, (candeView.High + candeView.Low) / 2);
+                    point.View.DrawOrMove(point, point, 0, Chart);
+
+                    previousDrawn = point;
+                }
+                else
+                {
+                    view.RemoveFromView(Chart);
+                }
+            }
+        }
+
+        private static void SetPointViewPosition(double padding, double exceed, double candleWidth, double x, IOhlcPointView candeView)
+        {
+            candeView.Width = candleWidth - padding > 0 ? candleWidth - padding : 0;
+            candeView.Left = x + exceed / 2 + padding;
+            candeView.StartReference = (candeView.High + candeView.Low) / 2;
+        }
+
+        private void SetPointViewOHLC(IEnumerable<ChartPoint> points, int interval, int currentPointIndex, IOhlcPointView candeView)
+        {
+            double open, high, low, close;
+            GetOHLC(points, interval, currentPointIndex, out open, out high, out low, out close);
+            candeView.Open = ChartFunctions.ToDrawMargin(open, AxisOrientation.Y, Chart, View.ScalesYAt);
+            candeView.Close = ChartFunctions.ToDrawMargin(close, AxisOrientation.Y, Chart, View.ScalesYAt);
+            candeView.High = ChartFunctions.ToDrawMargin(high, AxisOrientation.Y, Chart, View.ScalesYAt);
+            candeView.Low = ChartFunctions.ToDrawMargin(low, AxisOrientation.Y, Chart, View.ScalesYAt);
         }
 
         private static void GetOHLC(IEnumerable<ChartPoint> points, int interval, int startIndex, out double open, out double high, out double low, out double close)
